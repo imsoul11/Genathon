@@ -3,17 +3,16 @@ import { Outlet } from 'react-router-dom';
 import React from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"; // Adjust the path as needed
 import { AppSidebar } from "@/components/app-sidebar"; // Adjust the path as needed
-import ThemeToggle from './Themetoggle';
+import Navbar from './Navbar'; // Import the Navbar component
 
-
-const Layout = ({ children }) => {
+const Layout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
       <main>
-        <ThemeToggle/>
-        <SidebarTrigger />
-        <Outlet/>
+        <Navbar component={<SidebarTrigger />}/> {/* Add the Navbar here */}
+        
+        <Outlet />
       </main>
     </SidebarProvider>
   );

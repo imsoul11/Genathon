@@ -35,7 +35,7 @@ async function deleteAllData(req, res) {
 async function insertBulkData(req, res) {
     const bulkData = [];
     
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 1; i++) {
         bulkData.push({
             eid: `eid${Math.random().toString(36).substr(2, 7)}`, // Random EID
             remarks: "No follow-up needed", 
