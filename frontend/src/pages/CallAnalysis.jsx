@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 
 export function CallAnalysis() {
-  const { user, isAuthenticated, loading } = useAuth(); // Assuming user info is available in AuthContext
+  const { user, isAuthenticated, isloading } = useAuth(); // Assuming user info is available in AuthContext
   const [callAnalysis, setCallAnalysis] = useState([]); // State for call analysis data
   const [employeeIds, setEmployeeIds] = useState([]); // State for unique employee IDs
   const [selectedEid, setSelectedEid] = useState("E"); // State for filtering by eid
@@ -48,9 +48,8 @@ export function CallAnalysis() {
     fetchCallData();
   }, []);
 
-  if (!loading && !isAuthenticated) {
-    // Redirect to login or display message
-    return <Navigate to="/login" replace />; // Use replace to prevent going back to this page
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
   }
 
   // Determine if user is an employee

@@ -5,135 +5,173 @@ import { Progress } from "../components/ui/progress";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BarChartComponent from "@/components/BarChartComponent"; // Placeholder for chart component
-import { useAuth } from "../context/AuthContext"; // Import Auth context
+import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
-import { pushDummyData } from "@/firebaseapi";
+import { Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js"; // Import necessary elements
 
-// Dummy AI data for employees
-const AIdata = [
-  {
-    eid: "EMP001",
-    name: "John Doe",
-    remarks: "Great job handling customer queries!",
-    satisfaction_score: 85,
-    sentiment_analysis: "positive",
-    call_summary: "Handled the customer well, resolved the issue efficiently.",
-    call_text: "The customer had a billing issue that was quickly resolved.",
-    score_history: [80, 85, 90, 82, 88],
-  },
-  {
-    eid: "EMP002",
-    name: "Jane Smith",
-    remarks: "Needs improvement in communication.",
-    satisfaction_score: 60,
-    sentiment_analysis: "neutral",
-    call_summary: "The employee couldn't resolve the issue quickly.",
-    call_text: "Customer waited long for a response, wasn't satisfied.",
-    score_history: [60, 62, 65, 63, 60],
-  },
-  // Add more employee data here
-];
-
-const sentimentVariants = {
-  positive: "secondary",
-  negative: "destructive",
-  neutral: "default",
-};
+// Register the chart elements
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
-  const { user, logout, isAuthenticated, isLoading, loading } = useAuth(); // Use Auth context
-  const [selectedEmployee, setSelectedEmployee] = useState(AIdata[0]);
-  // useEffect(()=>{
-  //   console.log('Hello i am begin called')
-  //     pushDummyData()
-  // },[])
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const [AIdata, setAIdata] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+  // Function to group data by employee and calculate average satisfaction score
+  const processAIdata = (data) => {
+    const employeeData = data.reduce((acc, item) => {
+      const { eid, satisfaction_score, sentiment_analysis } = item;
+      if (!acc[eid]) {
+        acc[eid] = {
+          eid,
+          satisfaction_scores: [],
+          sentiment_counts: { positive: 0, neutral: 0, negative: 0 },
+        };
+      }
+
+      // Add satisfaction score
+      acc[eid].satisfaction_scores.push(satisfaction_score);
+
+      // Increment sentiment analysis counts
+      acc[eid].sentiment_counts[sentiment_analysis] += 1;
+
+      return acc;
+    }, {});
+
+    // Calculate the average satisfaction score for each employee
+    Object.keys(employeeData).forEach((eid) => {
+      const scores = employeeData[eid].satisfaction_scores;
+      const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+      employeeData[eid].average_satisfaction = avgScore;
+    });
+
+    return Object.values(employeeData); // Return array of employee data
+  };
+
+  // Fetch AI data from API on component mount
   useEffect(() => {
-    if (isLoading) {
-      // Optionally handle loading state
-      return <div>Loading...</div>;
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/data/all");
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        const processedData = processAIdata(data.data);
+        setAIdata(processedData);
+
+        if (user && user.role === "employee") {
+          const currentEmployee = processedData.find(emp => emp.eid === user.eid);
+          setSelectedEmployee(currentEmployee);
+        } else {
+          setSelectedEmployee(processedData[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (user) {
+      fetchData();
     }
-  }, [isLoading]);
+  }, [user]);
 
-  if (!isAuthenticated) {
-    // Redirect to login or display message
-    return <Navigate to="/login" replace />; // Use replace to prevent going back to this page
-  }
-
-  // Function to handle employee selection
   const handleEmployeeSelect = (eid) => {
     const employee = AIdata.find((emp) => emp.eid === eid);
     setSelectedEmployee(employee);
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const sentimentData = selectedEmployee
+    ? {
+        labels: ["Positive", "Neutral", "Negative"],
+        datasets: [
+          {
+            label: "Sentiment Analysis",
+            data: [
+              selectedEmployee.sentiment_counts.positive,
+              selectedEmployee.sentiment_counts.neutral,
+              selectedEmployee.sentiment_counts.negative,
+            ],
+            backgroundColor: ["#4caf50", "#ffeb3b", "#f44336"],
+          },
+        ],
+      }
+    : null;
+
   return (
     <div className="dashboard-container p-6">
-      {/* User Profile Section */}
       <div className="user-profile flex items-center gap-4 mb-8">
         <div>
           <h2 className="text-xl font-semibold">{user.eid}</h2>
           <p className="text-sm text-gray-600">{user.role}</p>
-          {user.role==='employee' && <p className="text-sm text-gray-600">{user.phone}</p>}
+          {user.role === "employee" && <p className="text-sm text-gray-600">{user.phone}</p>}
         </div>
-        <Button onClick={logout} className="ml-auto">Log Out</Button>
       </div>
 
-      {/* Employee Selection */}
       <div className="employee-section mb-8">
-        <Select onValueChange={handleEmployeeSelect}>
+        <Select
+          onValueChange={handleEmployeeSelect}
+          value={selectedEmployee ? selectedEmployee.eid : undefined}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select an employee" />
           </SelectTrigger>
           <SelectContent>
-            {AIdata.map((employee) => (
-              <SelectItem key={employee.eid} value={employee.eid}>
-                {employee.eid}
-              </SelectItem>
-            ))}
+            {AIdata && AIdata.length > 0 ? (
+              user.role === "manager" ? (
+                AIdata.map((employee) => (
+                  <SelectItem key={employee.eid} value={employee.eid}>
+                    {employee.eid}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem key={user.eid} value={user.eid}>
+                  {user.eid}
+                </SelectItem>
+              )
+            ) : (
+              <SelectItem disabled>No employees available</SelectItem>
+            )}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Employee Performance Metrics */}
-      <Card className="shadow-lg mb-8">
-        <CardHeader>
-          <CardTitle>{selectedEmployee.name} (Employee ID: {selectedEmployee.eid})</CardTitle>
-          <p>{selectedEmployee.remarks}</p>
-        </CardHeader>
-        <CardContent>
-          {/* Satisfaction Score */}
-          <div className="flex justify-between items-center mb-4">
-            <p className="font-medium">Satisfaction Score:</p>
-            <Progress value={selectedEmployee.satisfaction_score} className="w-3/4 ml-4" />
-            <span>{selectedEmployee.satisfaction_score}%</span>
-          </div>
+      {selectedEmployee && (
+        <Card className="shadow-lg mb-8">
+          <CardHeader>
+            <CardTitle>{selectedEmployee.name} (Employee ID: {selectedEmployee.eid})</CardTitle>
+            <p>{selectedEmployee.remarks}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center mb-4">
+              <p className="font-medium">Average Satisfaction Score:</p>
+              <Progress value={selectedEmployee.average_satisfaction} className="w-3/4 ml-4" />
+              <span>{selectedEmployee.average_satisfaction.toFixed(2)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Sentiment Badge */}
-          <div className="mb-4">
-            <p className="font-medium">Sentiment Analysis:</p>
-            <Badge variant={sentimentVariants[selectedEmployee.sentiment_analysis]}>
-              {selectedEmployee.sentiment_analysis}
-            </Badge>
-          </div>
-
-          {/* Call Summary and Call Text */}
-          <Accordion type="single" collapsible>
-            <AccordionItem value="summary">
-              <AccordionTrigger>Call Summary</AccordionTrigger>
-              <AccordionContent>{selectedEmployee.call_summary}</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="call_text">
-              <AccordionTrigger>Call Text</AccordionTrigger>
-              <AccordionContent>{selectedEmployee.call_text}</AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Satisfaction Score Chart */}
-      <div className="chart-section">
-        <BarChartComponent data={selectedEmployee.score_history} />
-      </div>
+      {selectedEmployee && (
+        <div className="chart-section mb-8 w-[600px] flex">
+          <h3>Sentiment Analysis Distribution</h3>
+          {sentimentData && <Pie data={sentimentData} />}
+        </div>
+      )}
     </div>
   );
 };
