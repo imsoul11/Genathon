@@ -104,7 +104,7 @@ export function CallAnalysis() {
           <TableRow>
             <TableHead className="w-[150px] text-center">Call ID</TableHead>
             <TableHead className="text-center">Employee ID</TableHead>
-            <TableHead className="text-center">Remarks</TableHead>
+            {/* <TableHead className="text-center">Remarks</TableHead> */}
             <TableHead className="text-center">Satisfaction Score</TableHead>
             <TableHead className="text-center">Sentiment Analysis</TableHead>
             <TableHead className="text-center">Call Summary</TableHead>
@@ -115,9 +115,9 @@ export function CallAnalysis() {
             <TableRow key={analysis._id}> {/* Use unique _id for key */}
               <TableCell className="font-medium text-center">{analysis.cid}</TableCell>
               <TableCell className="text-center">{analysis.eid}</TableCell>
-              <TableCell className="text-center">
+              {/* <TableCell className="text-center">
                 <Input defaultValue={analysis.remarks} readOnly />
-              </TableCell>
+              </TableCell> */}
               <TableCell className="flex justify-around items-center text-center">
                 <Progress value={((analysis.satisfaction_score + 1) / 5) * 100} className="w-3/4 ml-4" /> {/* Adjusted for satisfaction_score */}
                 <div>{analysis.satisfaction_score}</div>

@@ -11,7 +11,7 @@ const UserManagement = () => {
   const { user, logout, isAuthenticated } = useAuth(); // Use Auth context
   const [users, setUsers] = useState([]); // State to hold the users
   const [error, setError] = useState(null); // State for error handling
-  const [newUserData, setNewUserData] = useState({ phone: "",email:"",   role: "employee" }); // New user form state
+  const [newUserData, setNewUserData] = useState({employee_name:"", employee_phone: "", email: "", role: "employee", department: "" }); // New user form state
   const [successMessage, setSuccessMessage] = useState(null); // State to show success message
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const UserManagement = () => {
       const { eid, password } = await addUser(newUserData); // Call addUser from firebaseapi
       setUsers([...users, { eid, ...newUserData }]); // Update UI with the new user
       setSuccessMessage(`User added with EID: ${eid} and password: ${password}`); // Show success message
-      setNewUserData({ phone: "", email:"", role: "employee" }); // Reset form
+      setNewUserData({ employee_name:"",employee_phone: "", email: "", role: "employee", department: "" }); // Reset form
     } catch (err) {
       setError("Error adding user.");
       console.error(err);
@@ -77,41 +77,53 @@ const UserManagement = () => {
           <h2 className="text-xl font-semibold">{user.eid}</h2>
           <p className="text-sm text-gray-600">{user.role}</p>
         </div>
-        <Button onClick={logout} className="ml-auto">Log Out</Button>
       </div>
 
       {/* Display users only for admin */}
       <div className="add-user-form mt-6">
-            <h3 className="text-lg font-semibold mb-4">Add New User</h3>
-            {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
-            <div className="form-fields flex flex-col gap-4">
-              <Input
-                type="text"
-                placeholder="Phone Number"
-                value={newUserData.phone}
-                onChange={(e) => setNewUserData({ ...newUserData, phone: e.target.value })}
-              />
-              <Input
-                type="text"
-                placeholder="Email ID"
-                value={newUserData.email}
-                onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-              />
-              <Select
-                onValueChange={(value) => setNewUserData({ ...newUserData, role: value })}
-                defaultValue="employee"
-              >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee">Employee</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleAddUser} className="w-full mt-4">Add User</Button>
-            </div>
-          </div>
+        <h3 className="text-lg font-semibold mb-4">Add New User</h3>
+        {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
+        <div className="form-fields flex flex-col gap-4">
+          <Input
+            type="text"
+            placeholder="Employee Name"
+            value={newUserData.employee_name}
+            onChange={(e) => setNewUserData({ ...newUserData, employee_name: e.target.value })}
+          />
+          <Input
+            type="text"
+            placeholder="Phone Number"
+            value={newUserData.employee_phone}
+            onChange={(e) => setNewUserData({ ...newUserData, employee_phone: e.target.value })}
+          />
+          <Input
+            type="text"
+            placeholder="Email ID"
+            value={newUserData.email}
+            onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+          />
+          <Input
+            type="text"
+            placeholder="Department"
+            value={newUserData.department}
+            onChange={(e) => setNewUserData({ ...newUserData, department: e.target.value })}
+          />
+
+          <Select
+            onValueChange={(value) => setNewUserData({ ...newUserData, role: value })}
+            defaultValue="employee"
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="employee">Employee</SelectItem>
+              <SelectItem value="manager">Manager</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAddUser} className="w-full mt-4">Add User</Button>
+        </div>
+      </div>
       {user.role === "admin" && (
         <div className="user-list">
           <h3 className="text-lg font-semibold mb-4">Manage Users</h3>
@@ -123,7 +135,7 @@ const UserManagement = () => {
               </CardHeader>
               <CardContent className="flex justify-between items-center">
                 <div>
-                  <p>Phone: {u.phone}</p>
+                  <p>Phone: {u.employee_phone}</p>
                   <p>Role: {u.role}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -156,7 +168,7 @@ const UserManagement = () => {
           ))}
 
           {/* Form to add a new user */}
-          
+
         </div>
       )}
     </div>

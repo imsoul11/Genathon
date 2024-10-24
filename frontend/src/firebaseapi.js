@@ -133,7 +133,7 @@ async function sendWelcomeEmail({ email, eid, password }) {
 
 
 // Function to add a new user
-export async function addUser({ phone, role, email }) {
+export async function addUser({ employee_phone,employee_name, role,department, email }) {
   const collectionRef = collection(db, "users"); // Replace with your "users" collection name
 
   // Generate a unique eid and password
@@ -144,7 +144,9 @@ export async function addUser({ phone, role, email }) {
   const newUser = {
     eid,        // Auto-generated EID
     password,   // Auto-generated password
-    phone,      // User-provided phone number
+    employee_phone,      // User-provided phone number
+    department,
+    employee_name,
     email,// User-provided email
     role        // User-provided role (e.g., 'employee' or 'manager')
   };

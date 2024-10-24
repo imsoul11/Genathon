@@ -204,7 +204,7 @@ export function CallLogs() {
               <TableCell className="text-center">{formatDate(log.timestamp)}</TableCell>
               <TableCell className="text-center">
                 <audio controls className="text-center w-[250px]">
-                  <source src={log.recording} type="audio/mp3" />
+                  <source src={"/call.wav"} type="audio/mp3" />
                   Your browser does not support the audio element.
                 </audio>
               </TableCell>

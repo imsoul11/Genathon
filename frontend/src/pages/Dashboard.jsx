@@ -8,6 +8,7 @@ import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Pie } from "react-chartjs-2";
+import { BarComp } from "@/components/BarComp";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -97,19 +98,19 @@ const Dashboard = () => {
 
   const sentimentData = selectedEmployee
     ? {
-        labels: ["Positive", "Neutral", "Negative"],
-        datasets: [
-          {
-            label: "Sentiment Analysis",
-            data: [
-              selectedEmployee.sentiment_counts.positive,
-              selectedEmployee.sentiment_counts.neutral,
-              selectedEmployee.sentiment_counts.negative,
-            ],
-            backgroundColor: ["#4caf50", "#ffeb3b", "#f44336"],
-          },
-        ],
-      }
+      labels: ["Positive", "Neutral", "Negative"],
+      datasets: [
+        {
+          label: "Sentiment Analysis",
+          data: [
+            selectedEmployee.sentiment_counts.positive,
+            selectedEmployee.sentiment_counts.neutral,
+            selectedEmployee.sentiment_counts.negative,
+          ],
+          backgroundColor: ["#4caf50", "#ffeb3b", "#f44336"],
+        },
+      ],
+    }
     : null;
 
   return (
@@ -167,9 +168,16 @@ const Dashboard = () => {
       )}
 
       {selectedEmployee && (
-        <div className="chart-section mb-8 w-[600px] flex">
-          <h3>Sentiment Analysis Distribution</h3>
-          {sentimentData && <Pie data={sentimentData} />}
+        <div className="chart-section mb-8 mt-20  flex justify-around">
+          <div className="flex-col items-center justify-center w-[500px]">
+            <h3>Sentiment Analysis Distribution</h3>
+            {sentimentData && <Pie data={sentimentData} />}
+
+          </div>
+          {/* <div className="flex-col items-center justify-around w-[500px]">
+            <h3>Sentiment Analysis Distribution</h3>
+            {<BarComp />}
+          </div> */}
         </div>
       )}
     </div>
