@@ -20,6 +20,14 @@ mongoose.connect(`${process.env.MONGODB_CONNECTION_STRING}/${process.env.MONGODB
   useUnifiedTopology: true
 }).then(() => console.log('database connected')).catch((e) => console.log(`database error: ${e}`));
 
+// Serve static files from the 'dist' folder
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch-all route to serve the React app for unknown paths
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
 const mongoRoute = require('./Routes/mongo.js');
 app.use('/api/data', mongoRoute);
 
