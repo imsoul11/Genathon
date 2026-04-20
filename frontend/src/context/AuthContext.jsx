@@ -21,13 +21,10 @@ export const AuthProvider = ({ children }) => {
     const login = async (eid, password) => {
         setLoading(true);
         setError('');
-        console.log(eid,password)
         try {
             // Create a query to find the user document with the specified EID
             const userQuery = query(collection(db, 'users'), where('eid', '==', eid));
-            console.log(userQuery)
             const querySnapshot = await getDocs(userQuery);
-            console.log(querySnapshot)
             // Check if the query returned any documents
             if (!querySnapshot.empty) {
                 const userData = querySnapshot.docs[0].data(); // Get the first document's data

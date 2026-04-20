@@ -5,7 +5,6 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const path = require('path');
 // const cors = require('cors');
 
 const app = express();
@@ -15,19 +14,6 @@ app.use(bodyParser.json());
 app.use(cors({
   origin: process.env.FRONTEND_URL // Adjust this to your frontend URL
 }));
-
-mongoose.connect(`${process.env.MONGODB_CONNECTION_STRING}/${process.env.MONGODB_DATABASE_NAME}`, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('database connected')).catch((e) => console.log(`database error: ${e}`));
-
-// Serve static files from the 'dist' folder
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Catch-all route to serve the React app for unknown paths
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
 
 const mongoRoute = require('./Routes/mongo.js');
 app.use('/api/data', mongoRoute);
@@ -44,7 +30,7 @@ app.post('/send-welcome-email', async (req, res) => {
   });
 
   // Create the email options
-  let mailOptions = {
+  let mailOptions = {// use my email
     from: process.env.MAIL_USER, // Sender name and email
     to: email, // Recipient email
     subject: 'Welcome to the Company', // Email subject
@@ -65,6 +51,11 @@ app.post('/send-welcome-email', async (req, res) => {
     res.status(500).send({ error: 'Failed to send email' });
   }
 });
+
+mongoose.connect(`${process.env.MONGODB_CONNECTION_STRING}/${process.env.MONGODB_DATABASE_NAME}`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('database connected')).catch((e) => console.log(`database error: ${e}`));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
