@@ -4,15 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "../context/AuthContext"; // Import Auth context
+import { useExport } from "../context/ExportContext";
 import { Navigate } from "react-router-dom";
+import PageLoading from "../components/PageLoading";
 import { fetchUsers, updateUserRole, deleteUser, addUser } from "../firebaseapi"; // Import Firebase functions
 
 const UserManagement = () => {
-  const { user, logout, isAuthenticated } = useAuth(); // Use Auth context
+  const { user, logout, isAuthenticated, loading } = useAuth();
+  const { setExportConfig } = useExport();
   const [users, setUsers] = useState([]); // State to hold the users
   const [error, setError] = useState(null); // State for error handling
   const [newUserData, setNewUserData] = useState({employee_name:"", employee_phone: "", email: "", role: "employee", department: "" }); // New user form state
   const [successMessage, setSuccessMessage] = useState(null); // State to show success message
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     // Fetch users from Firebase when component mounts
@@ -23,6 +27,8 @@ const UserManagement = () => {
       } catch (err) {
         setError("Error fetching users.");
         console.error(err);
+      } finally {
+        setPageLoading(false);
       }
     }
     fetchUserData();
@@ -63,6 +69,32 @@ const UserManagement = () => {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      setExportConfig(null);
+      return () => setExportConfig(null);
+    }
+
+    setExportConfig({
+      filename: "users.csv",
+      headers: ["Employee ID", "Employee Name", "Phone", "Email", "Department", "Role"],
+      rows: users.map((entry) => [
+        entry.eid,
+        entry.name || entry.employee_name || "",
+        entry.employee_phone || entry.phone || "",
+        entry.email || "",
+        entry.department || "",
+        entry.role || "",
+      ]),
+    });
+
+    return () => setExportConfig(null);
+  }, [users, user, setExportConfig]);
+
+  if (loading || (isAuthenticated && pageLoading)) {
+    return <PageLoading variant="management" />;
+  }
 
   if (!isAuthenticated) {
     // Redirect to login or display message

@@ -32,7 +32,14 @@ export const AuthProvider = ({ children }) => {
                 // Check if provided password matches the stored password
                 if (userData.password === password) {
                     // Set the user state and mark as authenticated
-                    setUser({ eid: userData.eid, role: userData.role, phone: userData.phone, cids: userData.cids });
+                    setUser({
+                        eid: userData.eid,
+                        role: userData.role,
+                        phone: userData.phone || userData.employee_phone,
+                        cids: userData.cids,
+                        name: userData.name || userData.employee_name,
+                        employee_name: userData.employee_name,
+                    });
                     setIsAuthenticated(true);
                     
                     // Set a cookie for the user

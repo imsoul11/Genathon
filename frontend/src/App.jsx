@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import { CallLogs } from './pages/CallLogs';
 import Dashboard from './pages/Dashboard';
 import { CallAnalysis } from './pages/CallAnalysis';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ExportContext } from './context/ExportContext';
 import Login from './pages/Login';
 import Leaderboard from './pages/Leaderboard';
 import UserManagement from './pages/UserManagement'; // Assuming this page exists
@@ -26,10 +28,10 @@ const AdminRoute = ({ children }) => {
 
 const App = () => {
   const { user } = useAuth();
+  const [exportConfig, setExportConfig] = useState(null);
 
   return (
-    
-   
+    <ExportContext.Provider value={{ exportConfig, setExportConfig }}>
         <Routes>
           <Route path="/" element={<Layout />}>
             {/* Admin is routed to User Management directly */}
@@ -64,8 +66,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="dashboard" element={<Dashboard />} />
         </Routes>
-  
-    
+    </ExportContext.Provider>
   );
 };
 
